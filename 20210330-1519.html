@@ -38,12 +38,12 @@
 	<meta property="og:type" content="article">
 	<meta property="og:title" content="打造内大最强路由器（二）：深澜WEB自动认证 | 离子键's blog">
 	<meta property="og:description" content="">
-	<meta property="og:url" content="https://lizijiandesu.github.io/2021-03-30-1519">
+	<meta property="og:url" content="https://lizijiandesu.github.io/20210330-1519">
 
 	
 	<meta property="article:published_time" content="2021-03-30T15:03:00+08:00"> 
 	<meta property="article:author" content="Zhijian Li">
-	<meta property="article:published_first" content="离子键's blog, /2021-03-30-1519">
+	<meta property="article:published_first" content="离子键's blog, /20210330-1519">
 	
 
 	
@@ -139,7 +139,26 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    
+                    <h2 id="零、需求"><a href="#零、需求" class="headerlink" title="零、需求"></a>零、需求</h2><p>内大的校园网是分为无线和有线两个部分。无线部分比较省心，当成功认证之后，你的校园网账号就会绑定当前设备的MAC地址，下次登录时无需重复认证。而有线部分就比较坑了，每当已登录的设备断开后则需要重新认证。<br>所以不仅每天起床后都需要手动进行登录认证，就连重启路由器也要认证……不堪其烦，于是摸索自动认证的方法。<br>本篇及后续系列篇章的功能都在<a target="_blank" rel="noopener" href="https://ikirby.me/">ikirby</a>的指导下实现，在此感谢他的帮助。</p>
+<h2 id="一、分析"><a href="#一、分析" class="headerlink" title="一、分析"></a>一、分析</h2><p>认证只需要在 <a target="_blank" rel="noopener" href="http://172.31.99.50:802/srun_portal_pc.php?ac_id=2&amp;">http://172.31.99.50:802/srun_portal_pc.php?ac_id=2&amp;</a> 里输入学号密码就可以了，所以我们需要抓包查看这个过程到底发生了什么。</p>
+<h2 id="二、抓包"><a href="#二、抓包" class="headerlink" title="二、抓包"></a>二、抓包</h2><p>需要用到Chrome或者Edge。在认证页按下F12，选中Network。然后输入你的学号密码并登录。可以观察到此时在Name的下方多出了一项，我们点开它。<br><img alt="img1" class="post-img b-lazy" data-img="/images/blog3img1.png" data-index="0" data-src="/images/blog3img1.png">（个人信息进行了打码处理）<br>这是一个POST请求，划到最下面，能看到几项关键的参数：username和password，也就是你的学号和加密过的密码，所以基本可以判定这个POST请求就是认证的关键了。其他的一些不明所以的参数，更换账号进行对照实验时也不会改变，所以我们可以不再研究，原封不动保留即可。<br><img alt="img2" class="post-img b-lazy" data-img="/images/blog3img2.png" data-index="1" data-src="/images/blog3img2.png"><br>至于这个密码是怎么加密的，这些参数代表什么，其实并不需要关心，我们只需要在路由器上自动模拟发送这个请求即可。我们先尝试一下。</p>
+<p>右键点击auth_action.php，选择Copy，Copy cURL(bath)，使得它能够在Linux上运行。新建一个空白文件，粘贴进去，继续分析。<br><img alt="img3" class="post-img b-lazy" data-img="/images/blog3img3.png" data-index="2" data-src="/images/blog3img3.png"></p>
+<h2 id="三、模拟"><a href="#三、模拟" class="headerlink" title="三、模拟"></a>三、模拟</h2><p><img alt="img4" class="post-img b-lazy" data-img="/images/blog3img4.png" data-index="3" data-src="/images/blog3img4.png"><br>可以看到目标URL是 <a target="_blank" rel="noopener" href="http://172.31.99.50:802/include/auth_action.php">http://172.31.99.50:802/include/auth_action.php</a> ，关键参数为“–data-raw”后面<strong>高亮</strong>的这一句，其他的“-H”都是登录时候的环境参数，是无关变量，猜测服务器不会对这些参数进行验证，可以尝试全部删了。<br>于是我们就可以用一条命令模拟这一个登录过程（记得把“关键参数”四个字改为你自己的关键参数）：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -d “关键参数” http://172.31.99.50:802/include/auth_action.php。</span><br></pre></td></tr></tbody></table></figure>
+<p>在认证页把账号退出，确认下现在是未认证、上不了网的状态。然后打开路由器后台，系统–TTYD终端，把命令复制进去。如图<br>（在Linux终端中，粘贴快捷键为Ctrl+Shift+v）<br><img alt="img5" class="post-img b-lazy" data-img="/images/blog3img5.png" data-index="4" data-src="/images/blog3img5.png"><br>回车执行。<br><img alt="img6" class="post-img b-lazy" data-img="/images/blog3img6.png" data-index="5" data-src="/images/blog3img6.png"><br>返回了login_ok，此时路由器已经连上网了，模拟成功！</p>
+<h2 id="四、自启"><a href="#四、自启" class="headerlink" title="四、自启"></a>四、自启</h2><p>我们的最终目的是实现在路由器开机时就自动进行登录认证，所以我们还需要写一个自启脚本。<br>找一个靠谱的文本编辑器，推荐Notepad++、VS Code，把以下内容粘贴进去，并把关键参数改为自己的参数。<br>（其中“#”后面的内容为注释，可以删除。）</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh /etc/rc.common</span><br><span class="line">START=99                         # 启动优先级：99</span><br><span class="line"></span><br><span class="line">start(){</span><br><span class="line">ping -c 1 202.207.0.6            # 对校园网网关服务器进行1次ping</span><br><span class="line">while [ $? != 0 ]                # 如果上一次ping不通的话</span><br><span class="line">do                               # 则执行</span><br><span class="line">	sleep 5                      # 等待5秒</span><br><span class="line">	ping -c 1 202.207.0.6        # 再次ping网关IP</span><br><span class="line">done                             # 如果成功ping通了</span><br><span class="line">curl -d "关键参数" http://172.31.99.50:802/include/auth_action.php</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>改完关键参数后，全选、复制留作备用。</p>
+<p>这里说一下为什么需要ping学校网关：只有当网络中心给你分配内网IP时才可以进行登录认证，而在高峰期，这个等待时间甚至有可能长达十分钟，所以写一个程序判断是否获取到了IP地址就很有必要。当成功ping通网关的时候，也就证明获取到了IP，可以进行认证操作了。</p>
+<p>切换到英文输入，在TTYD终端里，执行命令：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /etc/init.d     # 进入/etc/init.d</span><br><span class="line">vi autologin       # 用vi编辑器创建并编辑文件autologin</span><br></pre></td></tr></tbody></table></figure>
+<p>要注意的是，此时是命令状态，需要按i键进入插入状态才可以输入。<br>然后把刚刚复制的内容粘贴进去。（再次提醒下，Linux终端里的粘贴快捷键为Ctrl+Shift+v）<br>按Esc返回命令状态，再按英文冒号键（Shift+L右边的键），输入wq，回车退出。<br><img alt="img7" class="post-img b-lazy" data-img="/images/blog3img7.png" data-index="6" data-src="/images/blog3img7.png"><br>接下来给刚刚编辑的文件加上执行权限，终端执行：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x autologin</span><br></pre></td></tr></tbody></table></figure>
+<p>然后设置开机启动项，执行：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./autologin enable</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="五、测试"><a href="#五、测试" class="headerlink" title="五、测试"></a>五、测试</h2><p>进入系统–启动项页面，查找有没有刚刚我们创建的autologin，看下它是不是“已启用”状态。<br><img alt="img8" class="post-img b-lazy" data-img="/images/blog3img8.png" data-index="7" data-src="/images/blog3img8.png"><br>接着进入系统–重启页面重启路由器，验证脚本效果。</p>
+
                 </article>
                 <ul class="tags-postTags">
                     
@@ -157,7 +176,7 @@
         
         <span class="prev-next-post">·</span>
         
-        <a class="next-post" title="打造内大最强路由器（一）：新路由3、Breed、固件与基本设置" href="/2021-03-29-0909">
+        <a class="next-post" title="打造内大最强路由器（一）：新路由3、Breed、固件与基本设置" href="/20210329-0909">
             打造内大最强路由器（一）：新路由3、Breed、固件与基本设置 →
         </a>
         
@@ -184,7 +203,7 @@
         </a>
     </div>
     <div class="toc-main">
-        
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9B%B6%E3%80%81%E9%9C%80%E6%B1%82"><span class="toc-text">零、需求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%88%86%E6%9E%90"><span class="toc-text">一、分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%8A%93%E5%8C%85"><span class="toc-text">二、抓包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%A8%A1%E6%8B%9F"><span class="toc-text">三、模拟</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%87%AA%E5%90%AF"><span class="toc-text">四、自启</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%B5%8B%E8%AF%95"><span class="toc-text">五、测试</span></a></li></ol>
     </div>
 </div>
 
@@ -286,19 +305,19 @@
       
       
       <li>
-        <a href="/2021-03-30-1519">打造内大最强路由器（二）：深澜WEB自动认证</a>
+        <a href="/20210330-1519">打造内大最强路由器（二）：深澜WEB自动认证</a>
       </li>
       
       
       
       <li>
-        <a href="/2021-03-29-0909">打造内大最强路由器（一）：新路由3、Breed、固件与基本设置</a>
+        <a href="/20210329-0909">打造内大最强路由器（一）：新路由3、Breed、固件与基本设置</a>
       </li>
       
       
       
       <li>
-        <a href="/2021-02-12-1122">广西移动光猫折腾日记（上）：翻车忏悔录</a>
+        <a href="/20210212-1122">广西移动光猫折腾日记（上）：翻车忏悔录</a>
       </li>
       
       
@@ -352,7 +371,7 @@
 			<a href="/" title="离子键's blog">离子键's blog © 2021</a>
 			
 				
-			        <span hidden="true" id="/2021-03-30-1519" class="leancloud-visitors" data-flag-title="打造内大最强路由器（二）：深澜WEB自动认证">
+			        <span hidden="true" id="/20210330-1519" class="leancloud-visitors" data-flag-title="打造内大最强路由器（二）：深澜WEB自动认证">
 			            <span>阅读量 </span>
 			            <span class="leancloud-visitors-count">0</span>
 			        </span>

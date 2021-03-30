@@ -38,12 +38,12 @@
 	<meta property="og:type" content="article">
 	<meta property="og:title" content="打造内大最强路由器（一）：新路由3、Breed、固件与基本设置 | 离子键's blog">
 	<meta property="og:description" content="">
-	<meta property="og:url" content="https://lizijiandesu.github.io/2021-03-29-0909">
+	<meta property="og:url" content="https://lizijiandesu.github.io/20210329-0909">
 
 	
 	<meta property="article:published_time" content="2021-03-29T09:03:00+08:00"> 
 	<meta property="article:author" content="Zhijian Li">
-	<meta property="article:published_first" content="离子键's blog, /2021-03-29-0909">
+	<meta property="article:published_first" content="离子键's blog, /20210329-0909">
 	
 
 	
@@ -139,7 +139,8 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <h2 id="选择路由器"><a href="#选择路由器" class="headerlink" title="选择路由器"></a>选择路由器</h2><p>推荐尽量选择在恩山论坛里人气比较高的路由器，这类路由器一般有很多固件可供选择，而且驱动也相对完整，不太容易出现莫名其妙的疑难杂症，性价比也相对很高。<br>在这里我选择的是新路由3。它有全千兆的网口，512M的DDR3内存，32M的闪存，MT7621A双核CPU以及1个USB3.0接口，作为寝室公用路由是完全足够的。<br>本系列博客也都是以新路由3为标准而写成的。</p>
+                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本系列博文着重于操作，对于原理层面的知识则不太深究，毕竟我不是专业人士，水平有限。</p>
+<h2 id="选择路由器"><a href="#选择路由器" class="headerlink" title="选择路由器"></a>选择路由器</h2><p>推荐尽量选择在恩山论坛里人气比较高的路由器，这类路由器一般有很多固件可供选择，而且驱动也相对完整，不太容易出现莫名其妙的疑难杂症，性价比也相对很高。<br>在这里我选择的是新路由3。它有全千兆的网口，512M的DDR3内存，32M的闪存，MT7621A双核CPU以及1个USB3.0接口，作为寝室公用路由是完全足够的。<br>本系列博客也都是以新路由3为标准而写成的。</p>
 <h2 id="刷入Breed（不死）"><a href="#刷入Breed（不死）" class="headerlink" title="刷入Breed（不死）"></a>刷入Breed（不死）</h2><p>Breed的作用相当于手机上的Bootload、Recovery，主要是给路由器更换固件时提供一个入口，有时还起到救砖的作用，所以也有人称它为“不死”。<br>现在在售的新路由3已经基本没有全新的了，大多可以让商家帮忙刷好Breed后再寄过来。我的新路由3就是如此，所以我并没有亲身尝试过这一步操作。<br>如果你是个强迫症患者，买了全新版本的新路由3的话，可以按照恩山论坛的教程刷入Breed。<br><a target="_blank" rel="noopener" href="https://www.right.com.cn/forum/thread-342918-1-1.html">教程传送门</a></p>
 <h2 id="刷入第三方固件"><a href="#刷入第三方固件" class="headerlink" title="刷入第三方固件"></a>刷入第三方固件</h2><p><del>不刷第三方固件用什么新路由3。</del><br>新路由3有丰富的第三方固件资源，常见的有稳定易上手的Pandavan（老毛子），功能强大的openwrt/Pandorabox，精于流控和多拨的高恪等等。<br>因为本系列博客涉及到深澜web自动认证、多拨及负载均衡、校园网IPv6的两种实现方式，所以就选择了可定义程度高的openwrt。</p>
 <p>但我试过很多网友编译的openwrt，都不是很满意。大多因为是软件包装太多，造成了各种冲突，或者是出现了各种影响使用的小毛病，亦或者是没有安装内核模块kmod-ebtables导致无法实现后续的IPv6穿透等等。<br>基于此，我自己使用lean的源码编译了一个固件，使用闭源驱动，进行了最大限度的精简，仅保留了后续需要的软件包。<a href="">固件下载传送门</a><br>由于新路由3的<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/28422159">USB3.0与2.4Ghz信号有冲突</a>，并且在后续的IPv6穿透中路由器自身无法获取IPv6地址的原因，我砍掉了USB相关的全部功能。</p>
@@ -173,13 +174,13 @@
     
     <nav id="gobottom" class="pagination">
         
-        <a class="prev-post" title="打造内大最强路由器（二）：深澜WEB自动认证" href="/2021-03-30-1519">
+        <a class="prev-post" title="打造内大最强路由器（二）：深澜WEB自动认证" href="/20210330-1519">
             ← 打造内大最强路由器（二）：深澜WEB自动认证
         </a>
         
         <span class="prev-next-post">·</span>
         
-        <a class="next-post" title="广西移动光猫折腾日记（上）：翻车忏悔录" href="/2021-02-12-1122">
+        <a class="next-post" title="广西移动光猫折腾日记（上）：翻车忏悔录" href="/20210212-1122">
             广西移动光猫折腾日记（上）：翻车忏悔录 →
         </a>
         
@@ -206,7 +207,7 @@
         </a>
     </div>
     <div class="toc-main">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E8%B7%AF%E7%94%B1%E5%99%A8"><span class="toc-text">选择路由器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%B7%E5%85%A5Breed%EF%BC%88%E4%B8%8D%E6%AD%BB%EF%BC%89"><span class="toc-text">刷入Breed（不死）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%B7%E5%85%A5%E7%AC%AC%E4%B8%89%E6%96%B9%E5%9B%BA%E4%BB%B6"><span class="toc-text">刷入第三方固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E8%AE%BE%E7%BD%AE"><span class="toc-text">基本设置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E5%90%AF%E6%97%A0%E7%BA%BF%E5%8A%9F%E8%83%BD%EF%BC%9A"><span class="toc-text">开启无线功能：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E5%99%A8%E6%97%B6%E9%97%B4%E5%90%8C%E6%AD%A5%EF%BC%9A"><span class="toc-text">路由器时间同步：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E7%BD%91%E7%BB%9C%EF%BC%9A"><span class="toc-text">连接网络：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84%EF%BC%9A"><span class="toc-text">端口映射：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AD%94%E6%B3%95%E4%B8%8A%E7%BD%91%EF%BC%9A"><span class="toc-text">魔法上网：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AA%E6%B5%8B%E8%AF%95%E7%9A%84%E6%93%8D%E4%BD%9C%EF%BC%9A%E7%A1%AC%E4%BB%B6%E6%94%B9%E8%A3%85%E3%80%81%E4%BF%AE%E6%94%B9EEPROM"><span class="toc-text">未测试的操作：硬件改装、修改EEPROM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%84%E5%91%8A"><span class="toc-text">预告</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E8%B7%AF%E7%94%B1%E5%99%A8"><span class="toc-text">选择路由器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%B7%E5%85%A5Breed%EF%BC%88%E4%B8%8D%E6%AD%BB%EF%BC%89"><span class="toc-text">刷入Breed（不死）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%B7%E5%85%A5%E7%AC%AC%E4%B8%89%E6%96%B9%E5%9B%BA%E4%BB%B6"><span class="toc-text">刷入第三方固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E8%AE%BE%E7%BD%AE"><span class="toc-text">基本设置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E5%90%AF%E6%97%A0%E7%BA%BF%E5%8A%9F%E8%83%BD%EF%BC%9A"><span class="toc-text">开启无线功能：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E5%99%A8%E6%97%B6%E9%97%B4%E5%90%8C%E6%AD%A5%EF%BC%9A"><span class="toc-text">路由器时间同步：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E7%BD%91%E7%BB%9C%EF%BC%9A"><span class="toc-text">连接网络：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84%EF%BC%9A"><span class="toc-text">端口映射：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AD%94%E6%B3%95%E4%B8%8A%E7%BD%91%EF%BC%9A"><span class="toc-text">魔法上网：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AA%E6%B5%8B%E8%AF%95%E7%9A%84%E6%93%8D%E4%BD%9C%EF%BC%9A%E7%A1%AC%E4%BB%B6%E6%94%B9%E8%A3%85%E3%80%81%E4%BF%AE%E6%94%B9EEPROM"><span class="toc-text">未测试的操作：硬件改装、修改EEPROM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%84%E5%91%8A"><span class="toc-text">预告</span></a></li></ol>
     </div>
 </div>
 
@@ -308,19 +309,19 @@
       
       
       <li>
-        <a href="/2021-03-30-1519">打造内大最强路由器（二）：深澜WEB自动认证</a>
+        <a href="/20210330-1519">打造内大最强路由器（二）：深澜WEB自动认证</a>
       </li>
       
       
       
       <li>
-        <a href="/2021-03-29-0909">打造内大最强路由器（一）：新路由3、Breed、固件与基本设置</a>
+        <a href="/20210329-0909">打造内大最强路由器（一）：新路由3、Breed、固件与基本设置</a>
       </li>
       
       
       
       <li>
-        <a href="/2021-02-12-1122">广西移动光猫折腾日记（上）：翻车忏悔录</a>
+        <a href="/20210212-1122">广西移动光猫折腾日记（上）：翻车忏悔录</a>
       </li>
       
       
@@ -374,7 +375,7 @@
 			<a href="/" title="离子键's blog">离子键's blog © 2021</a>
 			
 				
-			        <span hidden="true" id="/2021-03-29-0909" class="leancloud-visitors" data-flag-title="打造内大最强路由器（一）：新路由3、Breed、固件与基本设置">
+			        <span hidden="true" id="/20210329-0909" class="leancloud-visitors" data-flag-title="打造内大最强路由器（一）：新路由3、Breed、固件与基本设置">
 			            <span>阅读量 </span>
 			            <span class="leancloud-visitors-count">0</span>
 			        </span>
