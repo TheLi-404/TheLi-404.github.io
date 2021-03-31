@@ -1,0 +1,491 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<link rel="preconnect" href="//www.googletagmanager.com">
+	<link rel="preconnect" href="//zz.bdstatic.com">
+	<link rel="preconnect" href="//sp0.baidu.com">
+	<link rel="preconnect" href="//www.google-analytics.com">
+	<link rel="preconnect" href="//cdn1.lncld.net">
+	<link rel="preconnect" href="//unpkg.com">
+	<link rel="preconnect" href="//app-router.leancloud.cn">
+	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
+	<link rel="preconnect" href="//gravatar.loli.net">
+
+	<title>打造内大最强路由器（三）：单线多拨实现带宽叠加（伪） | 离子键's blog</title>
+
+	<meta name="HandheldFriendly" content="True">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+	<meta name="generator" content="hexo">
+	<meta name="author" content="Zhijian Li">
+	<meta name="description" content="">
+
+	
+	<meta name="keywords" content="">
+	
+
+	
+
+	
+	<meta name="theme-color" content="#3c484e">
+	<meta name="msapplication-TileColor" content="#3c484e">
+	
+
+	
+
+	
+
+	<meta property="og:site_name" content="离子键's blog">
+	<meta property="og:type" content="article">
+	<meta property="og:title" content="打造内大最强路由器（三）：单线多拨实现带宽叠加（伪） | 离子键's blog">
+	<meta property="og:description" content="">
+	<meta property="og:url" content="https://lizijiandesu.github.io/20210331-1029">
+
+	
+	<meta property="article:published_time" content="2021-03-31T10:03:00+08:00"> 
+	<meta property="article:author" content="Zhijian Li">
+	<meta property="article:published_first" content="离子键's blog, /20210331-1029">
+	
+
+	
+	
+	
+<link rel="stylesheet" href="/css/allinonecss.min.css">
+
+
+	
+	
+	
+</head>
+
+<body class="post-template">
+	<div class="site-wrapper">
+		
+
+
+
+
+<header class="site-header post-site-header outer">
+    <div class="inner">
+        
+<nav class="site-nav"> 
+    <div class="site-nav-left">
+        <ul class="nav">
+            <li>
+                
+                <a href="/" title="Home">HOME</a>
+                
+            </li>
+            
+            
+            <li>
+                <a href="/关于" title="关于">关于</a>
+            </li>
+            
+            <li>
+                <a href="/archives" title="归档">归档</a>
+            </li>
+            
+            <li>
+                <a href="/追番列表" title="追番">追番</a>
+            </li>
+            
+            
+        </ul> 
+    </div>
+    
+    <div class="search-button-area">
+        <a href="#search" class="search-button">Search ...</a>
+    </div>
+     
+    <div class="site-nav-right">
+        
+        <a href="#search" class="search-button">Search ...</a>
+         
+        
+<div class="social-links">
+    
+    
+    
+    
+    
+    <a class="social-link" title="telegram" href="https://t.me/LiZiJiandesu" target="_blank" rel="noopener">
+        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M679.428571 746.857143l84-396q5.142857-25.142857-6-36t-29.428571-4L234.285714 501.142857q-16.571429 6.285714-22.571428 14.285714t-1.428572 15.142858 18.285715 11.142857l126.285714 39.428571 293.142857-184.571428q12-8 18.285714-3.428572 4 2.857143-2.285714 8.571429l-237.142857 214.285714-9.142857 130.285714q13.142857 0 25.714285-12.571428l61.714286-59.428572 128 94.285715q36.571429 20.571429 46.285714-21.714286z m344.571429-234.857143q0 104-40.571429 198.857143t-109.142857 163.428571-163.428571 109.142857-198.857143 40.571429-198.857143-40.571429-163.428571-109.142857-109.142857-163.428571T0 512t40.571429-198.857143 109.142857-163.428571T313.142857 40.571429 512 0t198.857143 40.571429 163.428571 109.142857 109.142857 163.428571 40.571429 198.857143z"></path></svg>
+    </a>
+    
+    
+    
+</div>
+    </div>
+</nav>
+    </div>
+</header>
+
+
+<div id="site-main" class="site-main outer" role="main">
+    <div class="inner">
+        <header class="post-full-header">
+            <div class="post-full-meta">
+                <time class="post-full-meta-date" datetime="2021-03-31T02:29:16.000Z">
+                    2021-03-31
+                </time>
+                
+                <span class="date-divider">/</span>
+                
+                
+            </div>
+            <h1 class="post-full-title">打造内大最强路由器（三）：单线多拨实现带宽叠加（伪）</h1>
+        </header>
+        <div class="post-full no-image">
+            
+            <div class="post-full-content">
+                <article id="photoswipe" class="markdown-body">
+                    <h2 id="什么是多拨"><a href="#什么是多拨" class="headerlink" title="什么是多拨"></a>什么是多拨</h2><p>多拨最开始出现在家庭网络的拨号上网中。比如说，家里已经有了一条电信宽带，而移动充话费时又送了一条宽带。为了充分地利用起这两条宽带，我们把它们接在同一个路由器上，同时并发拨号，并对流量进行负载均衡，实现这两条宽带的带宽叠加，这个操作就叫做双线双拨。而某些地区的运营商存在Bug，能够对一条宽带进行多次拨号，并且实现带宽叠加，这个就叫做单线多拨。</p>
+<h2 id="实现校园网单线多拨的可能性"><a href="#实现校园网单线多拨的可能性" class="headerlink" title="实现校园网单线多拨的可能性"></a>实现校园网单线多拨的可能性</h2><p>根据N年前内大网络中心发布的一篇<a target="_blank" rel="noopener" href="https://nic.imu.edu.cn/info/1035/1123.htm">公告</a>中有提到：</p>
+<blockquote><p>网络中心不推荐使用路由器上网，我们推荐使用 <a target="_blank" rel="noopener" href="http://item.jd.com/436666.html">http://item.jd.com/436666.html</a> 这种带有ap功能的wifi设备。因为路由器只能获取一个IP地址，多人使用的时候会造成本地的网络拥堵，网速变慢。 ap模式会使每一台连接wifi的设备获取一个独立的IP，各设备之间网速相互不影响。 </p>
+</blockquote>
+<p>显而易见，内大校园网里存在限速，而且是根据IP地址限速的。每个校园网账号登陆后只能获取1个IP地址，所以也可以理解为对账号限速。<br>而在目前的测速来看，校园网对于每个账号的限速大概在100Mbps，所以我们只要尝试在同一个路由器上登录多个账号，也许就能实现带宽叠加了。</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
+<li>需要<del>向室友献出py</del>拿到多个校园网账号，并按照本系列<a href="">第二篇博文</a>里的教程，拿到这几个账号的关键参数，写成curl命令保存备用。</li>
+<li>一根六类以上网线，连接WAN口。</li>
+</ul>
+<h2 id="开启单线多拨"><a href="#开启单线多拨" class="headerlink" title="开启单线多拨"></a>开启单线多拨</h2><p>废话少说，直接试试就知道行不行了，多拨的操作其实都是同一套，弄完了直接测速，突破百兆即为成功。本次测试在Openwrt上进行，需要有多拨插件 luci-app-syncdial 及负载均衡 luci-app-mwan3 两个软件包。<br>网络–多线多拨里，勾选“启用”，多拨类型选择单线多拨，虚拟WAN口数量改成改成你拥有的校园网账号数量，最低在线数量改为1，其他的保持默认即可，保存&amp;应用。<br><img alt="img1" class="post-img b-lazy" data-img="/images/blog4img1.png" data-index="0" data-src="/images/blog4img1.png"><br>进入网络–接口，可以看到多出了3个VWAN接口，但是还不能认证上网。分别点击接口右边的“修改”按钮，对每个VWAN接口进行修改，修改内容为：</p>
+<ul>
+<li>将接口协议切换至“DHCP 客户端”</li>
+<li>在高级设置里，将网关跃点分别改成40、41、42……</li>
+</ul>
+<p>保存&amp;应用<br><img alt="img2" class="post-img b-lazy" data-img="/images/blog4img2.png" data-index="1" data-src="/images/blog4img2.png"><br>VWAN口均已获取到了内网IPv4地址，此时已经可以登录校园网账号了。curl命令里可以加入-I参数来指定接口，如：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -I macvlan1 -d “账号1的关键参数” http://172.31.99.50:802/include/auth_action.php </span><br><span class="line">curl -I macvlan2 -d “账号2的关键参数” http://172.31.99.50:802/include/auth_action.php</span><br><span class="line">curl -I macvlan3 -d “账号3的关键参数” http://172.31.99.50:802/include/auth_action.php</span><br><span class="line">以此类推……</span><br></pre></td></tr></tbody></table></figure>
+<p>这里macvlan1指的是你的VWAN的实际接口名，即在他们下方显示的内容。<br><img alt="img3" class="post-img b-lazy" data-img="/images/blog4img3.png" data-index="2" data-src="/images/blog4img3.png"><br>分别在TTDY终端里执行加了-I参数的三条curl命令。<br><img alt="img4" class="post-img b-lazy" data-img="/images/blog4img4.png" data-index="3" data-src="/images/blog4img4.png"><br>此时已经成功登陆上了3个账号，并且已经连上网络了。但是我们回到网络–接口页面查看，发现流量只走VWAN1，所以我们要配置下负载均衡。</p>
+<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><p>在一般的家庭宽带里，可能存在电信/联通宽带使用体验比移动好几倍的情况，所以有的人在负载均衡里给这些宽带设置的优先级、权重不一样。而在我们的校园网里，每个账号都是平等的，不存在哪个账号比较快，哪个账号延迟低的情况，所以我们这里只需要暴力地对流量平均分配即可。</p>
+<ul>
+<li>网络–负载均衡里，进入“接口”页，把除了vwam*之外的接口全都删了。<br><img alt="img5" class="post-img b-lazy" data-img="/images/blog4img5.png" data-index="4" data-src="/images/blog4img5.png"></li>
+<li>进入“成员”页，将vwan*_m1_w1之外的成员也都删了。其中这里的跃点数和一开始设置的跃点数含义不一样，这里的跃点数指的是优先级，数字越小优先级越高，只有当优先级高的接口成员断线后才会启用下一优先级的成员。当跃点数一样时，则看权重，权重高的成员分配到的流量就多。我们这里的跃点数和权重都设置成1即可。<br><img alt="img6" class="post-img b-lazy" data-img="/images/blog4img6.png" data-index="5" data-src="/images/blog4img6.png"></li>
+<li>“策略”页，按如图所示设置。<br><img alt="img7" class="post-img b-lazy" data-img="/images/blog4img7.png" data-index="6" data-src="/images/blog4img7.png"></li>
+<li>“规则”里，只留下一条协议为“all”，策略为“balanced”的就行了。<br><img alt="img8" class="post-img b-lazy" data-img="/images/blog4img8.png" data-index="7" data-src="/images/blog4img8.png"></li>
+</ul>
+<p>保存&amp;应用后，回到网络–接口页，可以看到流量已经开始平均分配了。这样设置的话就能同时调用多个账号进行上网，理论上速度能翻几倍。但是弊端也很明显，因为流量分配得很暴力，同时拥有多个外网IP，访问一些敏感的网站时会出现问题，比如说手机银行支付的时候。但毕竟这是一个简单的测试，要是成功叠加带宽的话，这些问题我们以后慢慢去修复。<br><img alt="img9" class="post-img b-lazy" data-img="/images/blog4img9.png" data-index="8" data-src="/images/blog4img9.png"><br>此时理论上单线多拨已经成功了，接下来只要测一下速度就可以知道有没有效果了。</p>
+<h2 id="坏消息"><a href="#坏消息" class="headerlink" title="坏消息"></a>坏消息</h2><p>很遗憾，测试结果如下：<br><img alt="img10" class="post-img b-lazy" data-img="/images/blog4img10.png" data-index="9" data-src="/images/blog4img10.png"><br><img alt="img11" class="post-img b-lazy" data-img="/images/blog4img11.png" data-index="10" data-src="/images/blog4img11.png"><br>算上一些传输过程中不可避免的损耗外，带宽上限死死的锁在了百兆。<br>按理说，每个账号存在限速，现在也登陆上了多个账号，而且每个账号都是并发连接，流量也平均分配了，这些软件端配置方面是没有任何问题的，那么问题就出现在了硬件端。</p>
+<p>路由器上连接WAN口的网线是六类网线，所以问题只能出在埋在墙里的线了，只要这条线是百兆的话，一切就解释得通了……</p>
+<p>之所以一切都这么顺利，没有碰上什么障碍，正是因为网络中心知道这里是百兆线，我们玩出花来也突破不了物理极限，所以干脆什么限制都不做了~</p>
+<p>单线多拨实现带宽叠加计划宣告失败！</p>
+<h2 id="好消息"><a href="#好消息" class="headerlink" title="好消息"></a>好消息</h2><p>虽然带宽上限没有叠加，但是也不能说完全没有用武之地。<br>假设处于用网高峰期，每个人只能分配到30兆的带宽。而你因为登陆了3个账号，所以你的带宽应该在90兆左右，接近物理上限。但实际上，内大校园网在几周前的某个周末大面积断网后就稳定很多了，在高峰期也能有70兆多，所以实际意义还是不大。</p>
+<p>另一方面，由于校园网没有对多拨进行检测和限制，所以我们可以进行多线多拨，将带宽进行真正意义上的物理叠加。不过由于近期事情比较多，宿舍条件也有限，就暂时搁置了。</p>
+<h2 id="多账号开机自动认证"><a href="#多账号开机自动认证" class="headerlink" title="多账号开机自动认证"></a>多账号开机自动认证</h2><p>不管是单线多拨还是多线多拨，总不能每天都手动进TTDY终端进行登录认证吧，所以得写一个自启脚本。<br>写起来也挺简单的，只要给<a href="https://lizijiandesu.github.io/20210330-1519">上一篇博文</a>的自启脚本加上指定接口即可。<br>用靠谱的文件管理器创建多个文件，把下面的内容复制进去，并把“关键参数”分别改为每个账号的关键参数。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh /etc/rc.common</span><br><span class="line">START=99</span><br><span class="line"></span><br><span class="line">start(){</span><br><span class="line">ping -I macvlan1 -c 1 202.207.0.6</span><br><span class="line">while [ $? != 0 ]</span><br><span class="line">do</span><br><span class="line">	sleep 5</span><br><span class="line">	ping -I macvlan1 -c 1 202.207.0.6</span><br><span class="line">done</span><br><span class="line">curl --interface macvlan1 -d "关键参数" http://172.31.99.50:802/include/auth_action.php</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>可以看到仅仅是对上篇博文的脚本做了三处改动，其中ping后面的-I和curl后面的–interface都起到指定接口的作用，把它们分别改成你创建的VWAN对应的实际接口名，比如我这里的macvlan1。<br>接下来进入TTDY终端，执行：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /etc/init.d</span><br><span class="line">./autologin disable</span><br></pre></td></tr></tbody></table></figure>
+<p>其中第二条命令的作用是取消掉上篇博文里创建的脚本自启，因为这个脚本没有指定接口。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi autologin1</span><br></pre></td></tr></tbody></table></figure>
+<p>按小写字母i进入插入模式，再把刚刚编辑的脚本复制，Ctrl+Shift+v粘贴进去。<br>Esc键返回命令模式，输入<code>:wq</code>并回车，保存退出。<br>同理，执行<code>vi autologin2</code>、<code>vi autologin3</code>……分别把第二、第三个账号的自启脚本复制进去，保存退出。<br>接着执行以下命令，给刚刚创建的每一个脚本都赋予执行权限：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x autologin*</span><br></pre></td></tr></tbody></table></figure>
+<p>最后分别执行下列命令，给这些脚本设置开机启动：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">./autologin1 enable</span><br><span class="line">./autologin2 enable</span><br><span class="line">./autologin3 enable</span><br><span class="line">以此类推……</span><br></pre></td></tr></tbody></table></figure>
+<p>前往系统–启动项页面查看是否存在<code>autologin1</code>、<code>autologin2</code>……并确认其已启用。<br>重启查看效果。</p>
+<h2 id="未完待续"><a href="#未完待续" class="headerlink" title="未完待续"></a>未完待续</h2><p>总有一天我会搞定它的。</p>
+
+                </article>
+                <ul class="tags-postTags">
+                    
+                    <li>
+                        <a href="/tags/%E6%8A%80%E6%9C%AF/" rel="tag"># 技术</a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    
+    <nav id="gobottom" class="pagination">
+        
+        <span class="prev-next-post">·</span>
+        
+        <a class="next-post" title="打造内大最强路由器（二）：深澜WEB自动认证" href="/20210330-1519">
+            打造内大最强路由器（二）：深澜WEB自动认证 →
+        </a>
+        
+    </nav>
+
+    
+    <div class="inner">
+        <div id="comment"></div>
+    </div>
+    
+</div>
+
+<div class="toc-bar">
+    <div class="toc-btn-bar">
+        <a href="#site-main" class="toc-btn">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M793.024 710.272a32 32 0 1 0 45.952-44.544l-310.304-320a32 32 0 0 0-46.4 0.48l-297.696 320a32 32 0 0 0 46.848 43.584l274.752-295.328 286.848 295.808z"></path></svg>
+        </a>
+        <div class="toc-btn toc-switch">
+            <svg class="toc-open" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M779.776 480h-387.2a32 32 0 0 0 0 64h387.2a32 32 0 0 0 0-64M779.776 672h-387.2a32 32 0 0 0 0 64h387.2a32 32 0 0 0 0-64M256 288a32 32 0 1 0 0 64 32 32 0 0 0 0-64M392.576 352h387.2a32 32 0 0 0 0-64h-387.2a32 32 0 0 0 0 64M256 480a32 32 0 1 0 0 64 32 32 0 0 0 0-64M256 672a32 32 0 1 0 0 64 32 32 0 0 0 0-64"></path></svg>
+            <svg class="toc-close hide" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M512 960c-247.039484 0-448-200.960516-448-448S264.960516 64 512 64 960 264.960516 960 512 759.039484 960 512 960zM512 128.287273c-211.584464 0-383.712727 172.128262-383.712727 383.712727 0 211.551781 172.128262 383.712727 383.712727 383.712727 211.551781 0 383.712727-172.159226 383.712727-383.712727C895.712727 300.415536 723.551781 128.287273 512 128.287273z"></path><path d="M557.05545 513.376159l138.367639-136.864185c12.576374-12.416396 12.672705-32.671738 0.25631-45.248112s-32.704421-12.672705-45.248112-0.25631l-138.560301 137.024163-136.447897-136.864185c-12.512727-12.512727-32.735385-12.576374-45.248112-0.063647-12.512727 12.480043-12.54369 32.735385-0.063647 45.248112l136.255235 136.671523-137.376804 135.904314c-12.576374 12.447359-12.672705 32.671738-0.25631 45.248112 6.271845 6.335493 14.496116 9.504099 22.751351 9.504099 8.12794 0 16.25588-3.103239 22.496761-9.247789l137.567746-136.064292 138.687596 139.136568c6.240882 6.271845 14.432469 9.407768 22.65674 9.407768 8.191587 0 16.352211-3.135923 22.591372-9.34412 12.512727-12.480043 12.54369-32.704421 0.063647-45.248112L557.05545 513.376159z"></path></svg>
+        </div>
+        <a href="#gobottom" class="toc-btn">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M231.424 346.208a32 32 0 0 0-46.848 43.584l297.696 320a32 32 0 0 0 46.4 0.48l310.304-320a32 32 0 1 0-45.952-44.544l-286.848 295.808-274.752-295.36z"></path></svg>
+        </a>
+    </div>
+    <div class="toc-main">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%A4%9A%E6%8B%A8"><span class="toc-text">什么是多拨</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%A0%A1%E5%9B%AD%E7%BD%91%E5%8D%95%E7%BA%BF%E5%A4%9A%E6%8B%A8%E7%9A%84%E5%8F%AF%E8%83%BD%E6%80%A7"><span class="toc-text">实现校园网单线多拨的可能性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%90%AF%E5%8D%95%E7%BA%BF%E5%A4%9A%E6%8B%A8"><span class="toc-text">开启单线多拨</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-text">负载均衡</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9D%8F%E6%B6%88%E6%81%AF"><span class="toc-text">坏消息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A5%BD%E6%B6%88%E6%81%AF"><span class="toc-text">好消息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E8%B4%A6%E5%8F%B7%E5%BC%80%E6%9C%BA%E8%87%AA%E5%8A%A8%E8%AE%A4%E8%AF%81"><span class="toc-text">多账号开机自动认证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AA%E5%AE%8C%E5%BE%85%E7%BB%AD"><span class="toc-text">未完待续</span></a></li></ol>
+    </div>
+</div>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+	</div>
+	
+
+
+<aside class="read-next outer">
+    <div class="inner">
+        <div class="read-next-feed">
+            
+            
+
+<article class="read-next-card" style="background-image: url(https://i.loli.net/2017/11/26/5a19c56faa29f.jpg)">
+  <header class="read-next-card-header">
+    <small class="read-next-card-header-sitetitle">— 离子键's blog —</small>
+    <h3 class="read-next-card-header-title">最新文章</h3>
+  </header>
+  <div class="read-next-divider">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path d="M13 14.5s2 3 5 3 5.5-2.463 5.5-5.5S21 6.5 18 6.5c-5 0-7 11-12 11C2.962 17.5.5 15.037.5 12S3 6.5 6 6.5s4.5 3.5 4.5 3.5"></path>
+    </svg>
+  </div>
+  <div class="read-next-card-content">
+    <ul>
+      
+      
+      
+      <li>
+        <a href="/20210331-1029">打造内大最强路由器（三）：单线多拨实现带宽叠加（伪）</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="/20210330-1519">打造内大最强路由器（二）：深澜WEB自动认证</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="/20210329-0909">打造内大最强路由器（一）：新路由3、Breed、固件与基本设置</a>
+      </li>
+      
+      
+      
+      
+    </ul>
+  </div>
+  <footer class="read-next-card-footer">
+    <a href="/archives">  MORE  → </a>
+  </footer>
+</article>
+
+            
+            
+            
+
+
+            
+            
+            
+
+<article class="read-next-card" style="background-image: url(https://i.loli.net/2017/11/26/5a19c56faa29f.jpg)">
+	<header class="read-next-card-header tagcloud-card">
+		<h3 class="read-next-card-header-title">标签云</h3>
+	</header>
+	<div class="read-next-card-content-ext">
+		<a href="/tags/%E6%8A%80%E6%9C%AF/" style="font-size: 14px;">技术</a>
+	</div>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+	
+
+
+
+
+<div id="search" class="search-overlay">
+    <div class="search-form">
+        
+        <input id="local-search-input" class="search-input" type="text" name="search" placeholder="搜索 ...">
+        <a class="search-overlay-close" href="#"></a>
+    </div>
+    <div id="local-search-result"></div>
+</div>
+
+<footer class="site-footer outer">
+	<div class="site-footer-content inner">
+		<div class="copyright">
+			<a href="/" title="离子键's blog">离子键's blog © 2021</a>
+			
+				
+			        <span hidden="true" id="/20210331-1029" class="leancloud-visitors" data-flag-title="打造内大最强路由器（三）：单线多拨实现带宽叠加（伪）">
+			            <span>阅读量 </span>
+			            <span class="leancloud-visitors-count">0</span>
+			        </span>
+	    		
+    		
+		</div>
+		<nav class="site-footer-nav">
+			
+			<a href="https://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a>
+			<a href="https://github.com/xzhih/hexo-theme-casper" title="Casper" target="_blank" rel="noopener">Casper</a>
+		</nav>
+	</div>
+</footer>
+	
+
+
+<script>
+    if(window.navigator && navigator.serviceWorker) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister()
+            }
+        })
+    }
+</script>
+
+
+<script id="scriptLoad" src="/js/allinone.min.js" async=""></script>
+
+
+<script>
+    document.getElementById('scriptLoad').addEventListener('load', function () {
+        
+        
+            var bLazy = new Blazy();
+        
+
+        
+        
+
+        
+        
+        
+            searchFunc("/");
+        
+        
+    })
+</script>
+
+
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+
+
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+
+
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+
+
+
+<script id="valineScript" src="//unpkg.com/valine/dist/Valine.min.js" async=""></script>
+<script>
+    document.getElementById('valineScript').addEventListener("load", function() {
+        new Valine({
+            el: '#comment' ,
+            verify: false,
+            notify: false,
+            appId: '',
+            appKey: '',
+            placeholder: 'Just go go',
+            pageSize: 10,
+            avatar: 'mm',
+            visitor: true
+        })
+    });
+</script>
+
+
+
+
+
+
+
+</body></html>
