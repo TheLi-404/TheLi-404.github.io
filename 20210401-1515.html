@@ -1,0 +1,493 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<link rel="preconnect" href="//www.googletagmanager.com">
+	<link rel="preconnect" href="//zz.bdstatic.com">
+	<link rel="preconnect" href="//sp0.baidu.com">
+	<link rel="preconnect" href="//www.google-analytics.com">
+	<link rel="preconnect" href="//cdn1.lncld.net">
+	<link rel="preconnect" href="//unpkg.com">
+	<link rel="preconnect" href="//app-router.leancloud.cn">
+	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
+	<link rel="preconnect" href="//gravatar.loli.net">
+
+	<title>打造内大最强路由器（四）：细节优化：IPv6穿透、DNS设置、断网重连 | 离子键's blog</title>
+
+	<meta name="HandheldFriendly" content="True">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+	<meta name="generator" content="hexo">
+	<meta name="author" content="Zhijian Li">
+	<meta name="description" content="">
+
+	
+	<meta name="keywords" content="">
+	
+
+	
+
+	
+	<meta name="theme-color" content="#3c484e">
+	<meta name="msapplication-TileColor" content="#3c484e">
+	
+
+	
+
+	
+
+	<meta property="og:site_name" content="离子键's blog">
+	<meta property="og:type" content="article">
+	<meta property="og:title" content="打造内大最强路由器（四）：细节优化：IPv6穿透、DNS设置、断网重连 | 离子键's blog">
+	<meta property="og:description" content="">
+	<meta property="og:url" content="https://lizijiandesu.github.io/20210401-1515">
+
+	
+	<meta property="article:published_time" content="2021-04-01T15:04:00+08:00"> 
+	<meta property="article:author" content="Zhijian Li">
+	<meta property="article:published_first" content="离子键's blog, /20210401-1515">
+	
+
+	
+	
+	
+<link rel="stylesheet" href="/css/allinonecss.min.css">
+
+
+	
+	
+	
+</head>
+
+<body class="post-template">
+	<div class="site-wrapper">
+		
+
+
+
+
+<header class="site-header post-site-header outer">
+    <div class="inner">
+        
+<nav class="site-nav"> 
+    <div class="site-nav-left">
+        <ul class="nav">
+            <li>
+                
+                <a href="/" title="Home">HOME</a>
+                
+            </li>
+            
+            
+            <li>
+                <a href="/关于" title="关于">关于</a>
+            </li>
+            
+            <li>
+                <a href="/archives" title="归档">归档</a>
+            </li>
+            
+            <li>
+                <a href="/追番列表" title="追番">追番</a>
+            </li>
+            
+            
+        </ul> 
+    </div>
+    
+    <div class="search-button-area">
+        <a href="#search" class="search-button">Search ...</a>
+    </div>
+     
+    <div class="site-nav-right">
+        
+        <a href="#search" class="search-button">Search ...</a>
+         
+        
+<div class="social-links">
+    
+    
+    
+    
+    
+    <a class="social-link" title="telegram" href="https://t.me/LiZiJiandesu" target="_blank" rel="noopener">
+        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M679.428571 746.857143l84-396q5.142857-25.142857-6-36t-29.428571-4L234.285714 501.142857q-16.571429 6.285714-22.571428 14.285714t-1.428572 15.142858 18.285715 11.142857l126.285714 39.428571 293.142857-184.571428q12-8 18.285714-3.428572 4 2.857143-2.285714 8.571429l-237.142857 214.285714-9.142857 130.285714q13.142857 0 25.714285-12.571428l61.714286-59.428572 128 94.285715q36.571429 20.571429 46.285714-21.714286z m344.571429-234.857143q0 104-40.571429 198.857143t-109.142857 163.428571-163.428571 109.142857-198.857143 40.571429-198.857143-40.571429-163.428571-109.142857-109.142857-163.428571T0 512t40.571429-198.857143 109.142857-163.428571T313.142857 40.571429 512 0t198.857143 40.571429 163.428571 109.142857 109.142857 163.428571 40.571429 198.857143z"></path></svg>
+    </a>
+    
+    
+    
+</div>
+    </div>
+</nav>
+    </div>
+</header>
+
+
+<div id="site-main" class="site-main outer" role="main">
+    <div class="inner">
+        <header class="post-full-header">
+            <div class="post-full-meta">
+                <time class="post-full-meta-date" datetime="2021-04-01T07:15:43.000Z">
+                    2021-04-1
+                </time>
+                
+                <span class="date-divider">/</span>
+                
+                
+            </div>
+            <h1 class="post-full-title">打造内大最强路由器（四）：细节优化：IPv6穿透、DNS设置、断网重连</h1>
+        </header>
+        <div class="post-full no-image">
+            
+            <div class="post-full-content">
+                <article id="photoswipe" class="markdown-body">
+                    <h2 id="IPv6"><a href="#IPv6" class="headerlink" title="IPv6"></a>IPv6</h2><p>在IPv4地址日趋不足的今天，IPv6可谓是未来的趋势。而在大部分的校园网中，IPv6地址只分配一次，下级设备则不再进行分配。<br>所以要手动处理一下，可以有以下几种方法：</p>
+<ul>
+<li>给IPv6部分也进行多拨、负载均衡<br>这应该是最符合多拨理念的处理方式，但也是最难的方式，而且IPv6只能在路由器本身使用，客户端想用的话也许还得进行NAT。<br><a target="_blank" rel="noopener" href="https://www.right.com.cn/forum/thread-760177-1-1.html">为lean大源码的多播插件添加ipv6负载均衡</a></li>
+<li>对IPv6进行NAT<br>极力不推荐这种方式，因为IPv6的出现就是为了解决IPv4地址不够，运营商对其进行NAT的问题。而对IPv6进行NAT，反而会导致IPv6最重要的特性丢失，那我要这IPv6有啥用？</li>
+<li>IPv6中继<br>此方法虽然能让路由器和客户端都能使用原生IPv6地址，但是此方法不稳定，会导致IPv6部分偶尔断网，不推荐使用。</li>
+<li>IPv6穿透<br>引用一位<a target="_blank" rel="noopener" href="https://www.polarxiong.com/archives/%E6%95%99%E8%82%B2%E7%BD%91DD-WRT-OpenWrt%E7%94%A8%E4%B8%8AIPv6-%E4%BB%A5%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%E4%B8%BA%E4%BE%8B.html">博主</a>的一段话，我觉得他说得很好。<blockquote><p>“穿透”说白了就是把路由器的内网暴露在网线那头的公网上（希望你听得懂），只不过这里是只把IPv6网络暴露在公网上。这样当我的电脑或手机连上路由器的时候，对于IPv6网络而言，我的电脑或手机是直接连上公网的（理解成没有经过路由器）；也可以理解成对于IPv6而言，路由器是工作在交换机模式，对于公网而言路由器是透明的，DHCPv6服务器能直接看到我的电脑或手机，没有路由器挡着。这样电脑或手机就相当于是直接连着网线的，显然能获取到IPv6地址了。</p>
+</blockquote>
+这种方式就是把路由器的上游和路由器的下游连接起来，组成一条“链”，下游设备通过这条“链”直接连接校园网，所以能获取到IPv6地址。<br>但因为路由器本身并不在这条“链”上，所以路由器自身就无法使用IPv6了。不过也不是没有解决办法，后面详谈。<br>此方法适用于能免费使用IPv6的校园网。</li>
+</ul>
+<h2 id="IPv6穿透的实现"><a href="#IPv6穿透的实现" class="headerlink" title="IPv6穿透的实现"></a>IPv6穿透的实现</h2><p>操作很简单，但需要固件有ebtables软件包。</p>
+<ul>
+<li>关闭odhcpd并禁止自启，防止它分配IPv6<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/etc/init.d/odhcpd stop</span><br><span class="line">/etc/init.d/odhcpd disable</span><br></pre></td></tr></tbody></table></figure></li>
+<li>在自动认证脚本的后面加上两行代码<br>执行<code>vi /etc/init.d/autologin</code>，然后通过方向键将光标移动到最后一行，按<code>o</code>键在当前行的下方添加内容。<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ebtables -t broute -A BROUTING -p ! ipv6 -j DROP -i eth0.2</span><br><span class="line">brctl addif br-lan eth0.2</span><br></pre></td></tr></tbody></table></figure>
+保存退出。<br>其中这里的eth0.2大有讲究，这个接口所连接的网线必须插在墙上的网口，而不是无线AP上的网口。<br>无线AP就是广播校园WIFI的白色盒子，这个盒子加了一些额外的规则，如果识别到你获取了IPv6地址却没有获取IPv4内网地址的话，会关闭这条线路上的IPv6连接。<br>如果你这里是eth0.3的网口连接着墙上的网口的话，那就改成eth0.3。</li>
+<li>允许IPv6 DNS解析<br>网络-&gt;DHCP/DNS-&gt;高级设置里，把“禁止解析 IPv6 DNS 记录”的勾去掉，保存&amp;应用。<br>重启路由器，访问<a target="_blank" rel="noopener" href="https://test-ipv6.com/index.html.zh_CN">IPv6测试网站</a>来测试效果。<br><img alt="img1" class="post-img b-lazy" data-img="/images/blog5img1.png" data-index="0" data-src="/images/blog5img1.png"><br>它这里甚至能识别我们用了隧道（穿透）。</li>
+<li>路由器自身获取IPv6<br>在网络-&gt;接口页面添加新接口，协议选择“DHCPv6客户端”，接口选择没被穿透的外网接口，防火墙设置里将它分配到wan，保存&amp;应用。这样路由器本身就能获取到IPv6地址了，对于需要在路由器上下种子的人来说很有帮助。<br><img alt="img2" class="post-img b-lazy" data-img="/images/blog5img2.png" data-index="1" data-src="/images/blog5img2.png"><br><img alt="img3" class="post-img b-lazy" data-img="/images/blog5img3.png" data-index="2" data-src="/images/blog5img3.png"></li>
+</ul>
+<h2 id="DNS设置"><a href="#DNS设置" class="headerlink" title="DNS设置"></a>DNS设置</h2><p>内大自己的DNS服务器实在是太烂了！<br>OpenWrt上能设置DNS的地方实在是太多了！</p>
+<ul>
+<li>每一个外网接口能设置DNS</li>
+<li>内网接口上能设置DNS</li>
+<li>网络-&gt;DHCP/DNS里能设置DNS</li>
+<li>各种各样的第三方软件包里能设置DNS</li>
+</ul>
+<p>这其中有的是功能不相同的，有的是功能相同的，所以就很容易造成各种混乱与冲突。<br>所以我建议像我这样，让路由器要求客户端自己解析，并指定解析服务器。<br>进入网络-&gt;接口页面，修改LAN口设置。<br>划到下方，在DHCP服务器-&gt;高级设置里，勾选“强制”，并在DHCP选项里填上<code>6,114.114.114.114,119.29.29.29</code>。<br>其中这里的<code>6</code>是参数，不可删除；<code>114.114.114.114,119.29.29.29</code>是DNS服务器，可以换成其他的，用英文逗号分隔。<br><img alt="img4" class="post-img b-lazy" data-img="/images/blog5img4.png" data-index="3" data-src="/images/blog5img4.png"><br><strong>注意，使用闭源驱动的固件在修改LAN口设置的时候会导致无线关闭！</strong><br>在保存&amp;应用前，先检查是否是用网线连接了路由器，设置完之后记得去网络-&gt;无线页面重启无线。</p>
+<p>通过WIFI重新连接路由器，查看连接详情。设置正确的话，应该是像我这样能看到DNS服务器的。<br><img alt="img5" class="post-img b-lazy" data-img="/images/blog5img5.png" data-index="4" data-src="/images/blog5img5.png"></p>
+<h2 id="断网重连"><a href="#断网重连" class="headerlink" title="断网重连"></a>断网重连</h2><p>有时候总会有一些奇怪的断网问题，原因未知。<br>为了保证使用体验，还是写了一个断网重连模块。</p>
+<ul>
+<li>这次我们放在/root下<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd root</span><br><span class="line">vi reconnect</span><br></pre></td></tr></tbody></table></figure></li>
+<li>复制以下代码，并把28、29行的接口、接口名、关键参数改为自己的，然后粘贴到刚刚创建的文件里去<br>请注意，<strong>接口名务必和创建接口时填入的接口名大小写一致</strong>。<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line"></span><br><span class="line">reconnect(){</span><br><span class="line">	for n in 1 2 3</span><br><span class="line">	do</span><br><span class="line">		ping -c 1 -I $1 www.baidu.com</span><br><span class="line">		if [ $? == 0 ];then</span><br><span class="line">			flag=false</span><br><span class="line">			break</span><br><span class="line">		else</span><br><span class="line">			flag=true</span><br><span class="line">		fi</span><br><span class="line">	done</span><br><span class="line"></span><br><span class="line">	if [ "$flag" == true ];then</span><br><span class="line">		ping -I $1 -c 1 202.207.0.6</span><br><span class="line">		if [ $? != 0 ];then</span><br><span class="line">			echo $(date) "端口$1断线，并且无法ping通校内DNS服务器" &gt;&gt; /root/log</span><br><span class="line">			ifup $2</span><br><span class="line">			sleep 10</span><br><span class="line">		else</span><br><span class="line">			echo $(date) "端口$1断线" &gt;&gt; /root/log</span><br><span class="line">		fi</span><br><span class="line">		curl --interface $1 -d "$3" http://172.31.99.50:802/include/auth_action.php</span><br><span class="line">	fi</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">VLAN_ID_1="eth0.2"   interface_name_1=wan0   user_1="账号1的关键参数"</span><br><span class="line">VLAN_ID_2="eth0.3"   interface_name_2=wan1   user_2="账号2的关键参数"</span><br><span class="line"></span><br><span class="line">reconnect $VLAN_ID_1 $interface_name_1 $user_1</span><br><span class="line">reconnect $VLAN_ID_2 $interface_name_2 $user_2</span><br></pre></td></tr></tbody></table></figure>
+逻辑也比较简单，多次ping百度，只要有一次通过即视为正常；<br>当无法ping通百度但可以ping通校内DNS服务器时，进行认证操作；<br>当无法ping通百度也无法ping通校内DNS服务器时，对接口进行重新连接并认证。</li>
+<li>给文件添加执行权限<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x reconnect</span><br></pre></td></tr></tbody></table></figure></li>
+<li>启用计划任务<br>在系统-&gt;计划任务里，添加以下行：<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">*/1 * * * * /root/reconnect</span><br><span class="line"></span><br></pre></td></tr></tbody></table></figure>
+这里的<code>*/1</code>表示每分钟执行一次。<strong>请保证末尾至少有一个空白行！</strong><br><img alt="img6" class="post-img b-lazy" data-img="/images/blog5img6.png" data-index="5" data-src="/images/blog5img6.png"><br>点击提交即可生效。</li>
+</ul>
+<h2 id="End"><a href="#End" class="headerlink" title="End"></a>End</h2><p>到这里，你的路由器已经是一台受过高等教育的路由器了，拥有非常优秀的体验。<br>后续的博文将进行一些无关紧要的研究，敬请期待。</p>
+<h2 id="部分参考资料"><a href="#部分参考资料" class="headerlink" title="部分参考资料"></a>部分参考资料</h2><p><a target="_blank" rel="noopener" href="https://makiras.org/archives/49">信息黄埔校园网ipv6路由处理</a></p>
+
+                </article>
+                <ul class="tags-postTags">
+                    
+                    <li>
+                        <a href="/tags/%E6%8A%80%E6%9C%AF/" rel="tag"># 技术</a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    
+    <nav id="gobottom" class="pagination">
+        
+        <a class="prev-post" title="打造内大最强路由器（五）：番外：白嫖校园网、路由器不断电" href="/20210427-2015">
+            ← 打造内大最强路由器（五）：番外：白嫖校园网、路由器不断电
+        </a>
+        
+        <span class="prev-next-post">·</span>
+        
+        <a class="next-post" title="打造内大最强路由器（三）：多线多拨实现带宽叠加" href="/20210331-1029">
+            打造内大最强路由器（三）：多线多拨实现带宽叠加 →
+        </a>
+        
+    </nav>
+
+    
+    <div class="inner">
+        <div id="comment"></div>
+    </div>
+    
+</div>
+
+<div class="toc-bar">
+    <div class="toc-btn-bar">
+        <a href="#site-main" class="toc-btn">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M793.024 710.272a32 32 0 1 0 45.952-44.544l-310.304-320a32 32 0 0 0-46.4 0.48l-297.696 320a32 32 0 0 0 46.848 43.584l274.752-295.328 286.848 295.808z"></path></svg>
+        </a>
+        <div class="toc-btn toc-switch">
+            <svg class="toc-open" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M779.776 480h-387.2a32 32 0 0 0 0 64h387.2a32 32 0 0 0 0-64M779.776 672h-387.2a32 32 0 0 0 0 64h387.2a32 32 0 0 0 0-64M256 288a32 32 0 1 0 0 64 32 32 0 0 0 0-64M392.576 352h387.2a32 32 0 0 0 0-64h-387.2a32 32 0 0 0 0 64M256 480a32 32 0 1 0 0 64 32 32 0 0 0 0-64M256 672a32 32 0 1 0 0 64 32 32 0 0 0 0-64"></path></svg>
+            <svg class="toc-close hide" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M512 960c-247.039484 0-448-200.960516-448-448S264.960516 64 512 64 960 264.960516 960 512 759.039484 960 512 960zM512 128.287273c-211.584464 0-383.712727 172.128262-383.712727 383.712727 0 211.551781 172.128262 383.712727 383.712727 383.712727 211.551781 0 383.712727-172.159226 383.712727-383.712727C895.712727 300.415536 723.551781 128.287273 512 128.287273z"></path><path d="M557.05545 513.376159l138.367639-136.864185c12.576374-12.416396 12.672705-32.671738 0.25631-45.248112s-32.704421-12.672705-45.248112-0.25631l-138.560301 137.024163-136.447897-136.864185c-12.512727-12.512727-32.735385-12.576374-45.248112-0.063647-12.512727 12.480043-12.54369 32.735385-0.063647 45.248112l136.255235 136.671523-137.376804 135.904314c-12.576374 12.447359-12.672705 32.671738-0.25631 45.248112 6.271845 6.335493 14.496116 9.504099 22.751351 9.504099 8.12794 0 16.25588-3.103239 22.496761-9.247789l137.567746-136.064292 138.687596 139.136568c6.240882 6.271845 14.432469 9.407768 22.65674 9.407768 8.191587 0 16.352211-3.135923 22.591372-9.34412 12.512727-12.480043 12.54369-32.704421 0.063647-45.248112L557.05545 513.376159z"></path></svg>
+        </div>
+        <a href="#gobottom" class="toc-btn">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M231.424 346.208a32 32 0 0 0-46.848 43.584l297.696 320a32 32 0 0 0 46.4 0.48l310.304-320a32 32 0 1 0-45.952-44.544l-286.848 295.808-274.752-295.36z"></path></svg>
+        </a>
+    </div>
+    <div class="toc-main">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#IPv6"><span class="toc-text">IPv6</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IPv6%E7%A9%BF%E9%80%8F%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-text">IPv6穿透的实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DNS%E8%AE%BE%E7%BD%AE"><span class="toc-text">DNS设置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%AD%E7%BD%91%E9%87%8D%E8%BF%9E"><span class="toc-text">断网重连</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#End"><span class="toc-text">End</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%83%A8%E5%88%86%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">部分参考资料</span></a></li></ol>
+    </div>
+</div>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+	</div>
+	
+
+
+<aside class="read-next outer">
+    <div class="inner">
+        <div class="read-next-feed">
+            
+            
+
+<article class="read-next-card" style="background-image: url(https://i.loli.net/2017/11/26/5a19c56faa29f.jpg)">
+  <header class="read-next-card-header">
+    <small class="read-next-card-header-sitetitle">— 离子键's blog —</small>
+    <h3 class="read-next-card-header-title">最新文章</h3>
+  </header>
+  <div class="read-next-divider">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path d="M13 14.5s2 3 5 3 5.5-2.463 5.5-5.5S21 6.5 18 6.5c-5 0-7 11-12 11C2.962 17.5.5 15.037.5 12S3 6.5 6 6.5s4.5 3.5 4.5 3.5"></path>
+    </svg>
+  </div>
+  <div class="read-next-card-content">
+    <ul>
+      
+      
+      
+      <li>
+        <a href="/20210427-2015">打造内大最强路由器（五）：番外：白嫖校园网、路由器不断电</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="/20210401-1515">打造内大最强路由器（四）：细节优化：IPv6穿透、DNS设置、断网重连</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="/20210331-1029">打造内大最强路由器（三）：多线多拨实现带宽叠加</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </div>
+  <footer class="read-next-card-footer">
+    <a href="/archives">  MORE  → </a>
+  </footer>
+</article>
+
+            
+            
+            
+
+
+            
+            
+            
+
+<article class="read-next-card" style="background-image: url(https://i.loli.net/2017/11/26/5a19c56faa29f.jpg)">
+	<header class="read-next-card-header tagcloud-card">
+		<h3 class="read-next-card-header-title">标签云</h3>
+	</header>
+	<div class="read-next-card-content-ext">
+		<a href="/tags/%E6%8A%80%E6%9C%AF/" style="font-size: 14px;">技术</a>
+	</div>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+	
+
+
+
+
+<div id="search" class="search-overlay">
+    <div class="search-form">
+        
+        <input id="local-search-input" class="search-input" type="text" name="search" placeholder="搜索 ...">
+        <a class="search-overlay-close" href="#"></a>
+    </div>
+    <div id="local-search-result"></div>
+</div>
+
+<footer class="site-footer outer">
+	<div class="site-footer-content inner">
+		<div class="copyright">
+			<a href="/" title="离子键's blog">离子键's blog © 2021</a>
+			
+				
+			        <span hidden="true" id="/20210401-1515" class="leancloud-visitors" data-flag-title="打造内大最强路由器（四）：细节优化：IPv6穿透、DNS设置、断网重连">
+			            <span>阅读量 </span>
+			            <span class="leancloud-visitors-count">0</span>
+			        </span>
+	    		
+    		
+		</div>
+		<nav class="site-footer-nav">
+			
+			<a href="https://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a>
+			<a href="https://github.com/xzhih/hexo-theme-casper" title="Casper" target="_blank" rel="noopener">Casper</a>
+		</nav>
+	</div>
+</footer>
+	
+
+
+<script>
+    if(window.navigator && navigator.serviceWorker) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister()
+            }
+        })
+    }
+</script>
+
+
+<script id="scriptLoad" src="/js/allinone.min.js" async=""></script>
+
+
+<script>
+    document.getElementById('scriptLoad').addEventListener('load', function () {
+        
+        
+            var bLazy = new Blazy();
+        
+
+        
+        
+
+        
+        
+        
+            searchFunc("/");
+        
+        
+    })
+</script>
+
+
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+
+
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+
+
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+
+
+
+<script id="valineScript" src="//unpkg.com/valine/dist/Valine.min.js" async=""></script>
+<script>
+    document.getElementById('valineScript').addEventListener("load", function() {
+        new Valine({
+            el: '#comment' ,
+            verify: false,
+            notify: false,
+            appId: '',
+            appKey: '',
+            placeholder: 'Just go go',
+            pageSize: 10,
+            avatar: 'mm',
+            visitor: true
+        })
+    });
+</script>
+
+
+
+
+
+
+
+</body></html>

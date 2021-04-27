@@ -11,7 +11,7 @@
 	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
 	<link rel="preconnect" href="//gravatar.loli.net">
 
-	<title>打造内大最强路由器（三）：单线多拨实现带宽叠加（伪） | 离子键's blog</title>
+	<title>打造内大最强路由器（三）：多线多拨实现带宽叠加 | 离子键's blog</title>
 
 	<meta name="HandheldFriendly" content="True">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -36,7 +36,7 @@
 
 	<meta property="og:site_name" content="离子键's blog">
 	<meta property="og:type" content="article">
-	<meta property="og:title" content="打造内大最强路由器（三）：单线多拨实现带宽叠加（伪） | 离子键's blog">
+	<meta property="og:title" content="打造内大最强路由器（三）：多线多拨实现带宽叠加 | 离子键's blog">
 	<meta property="og:description" content="">
 	<meta property="og:url" content="https://lizijiandesu.github.io/20210331-1029">
 
@@ -133,55 +133,45 @@
                 
                 
             </div>
-            <h1 class="post-full-title">打造内大最强路由器（三）：单线多拨实现带宽叠加（伪）</h1>
+            <h1 class="post-full-title">打造内大最强路由器（三）：多线多拨实现带宽叠加</h1>
         </header>
         <div class="post-full no-image">
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
                     <h2 id="什么是多拨"><a href="#什么是多拨" class="headerlink" title="什么是多拨"></a>什么是多拨</h2><p>多拨最开始出现在家庭网络的拨号上网中。比如说，家里已经有了一条电信宽带，而移动充话费时又送了一条宽带。为了充分地利用起这两条宽带，我们把它们接在同一个路由器上，同时并发拨号，并对流量进行负载均衡，实现这两条宽带的带宽叠加，这个操作就叫做双线双拨。而某些地区的运营商存在Bug，能够对一条宽带进行多次拨号，并且实现带宽叠加，这个就叫做单线多拨。</p>
-<h2 id="实现校园网单线多拨的可能性"><a href="#实现校园网单线多拨的可能性" class="headerlink" title="实现校园网单线多拨的可能性"></a>实现校园网单线多拨的可能性</h2><p>根据N年前内大网络中心发布的一篇<a target="_blank" rel="noopener" href="https://nic.imu.edu.cn/info/1035/1123.htm">公告</a>中有提到：</p>
+<h2 id="单线多拨的探索与结果"><a href="#单线多拨的探索与结果" class="headerlink" title="单线多拨的探索与结果"></a>单线多拨的探索与结果</h2><p>根据N年前内大网络中心发布的一篇<a target="_blank" rel="noopener" href="https://nic.imu.edu.cn/info/1035/1123.htm">公告</a>中有提到：</p>
 <blockquote><p>网络中心不推荐使用路由器上网，我们推荐使用 <a target="_blank" rel="noopener" href="http://item.jd.com/436666.html">http://item.jd.com/436666.html</a> 这种带有ap功能的wifi设备。因为路由器只能获取一个IP地址，多人使用的时候会造成本地的网络拥堵，网速变慢。 ap模式会使每一台连接wifi的设备获取一个独立的IP，各设备之间网速相互不影响。 </p>
 </blockquote>
-<p>显而易见，内大校园网里存在限速，而且是根据IP地址限速的。每个校园网账号登陆后只能获取1个IP地址，所以也可以理解为对账号限速。<br>而在目前的测速来看，校园网对于每个账号的限速大概在100Mbps，所以我们只要尝试在同一个路由器上登录多个账号，也许就能实现带宽叠加了。</p>
+<p>显而易见，内大校园网里存在限速，而且是根据IP地址限速的。每个校园网账号登陆后只能获取1个IP地址，所以也可以理解为对账号限速。<br>而在目前的测速来看，校园网对于每个账号的限速应该在100Mbps，所以我们只要尝试在同一个路由器上登录多个账号，也许就能实现带宽叠加了。</p>
+<p>然而最终根据我的大量测试来看，很遗憾，内大在装修时安装的埋墙线均为百兆，物理限制不可突破，单线多拨不会有网速提升。所以我们把目光还是转向多线多拨吧。</p>
 <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
-<li>需要<del>向室友献出py</del>拿到多个校园网账号，并按照本系列<a href="">第二篇博文</a>里的教程，拿到这几个账号的关键参数，写成curl命令保存备用。</li>
-<li>一根六类以上网线，连接WAN口。</li>
+<li>需要<del>向室友献出py</del>拿到多个校园网账号，并按照本系列<a href="https://lizijiandesu.github.io/20210330-1519">上一篇博文</a>里的教程，拿到这几个账号的关键参数，写成curl命令保存备用。</li>
+<li>多根网线以及一个能插网线的电脑。</li>
+<li>Openwrt固件的路由器，并安装好多拨插件 luci-app-syncdial 及负载均衡 luci-app-mwan3 。</li>
 </ul>
-<h2 id="开启单线多拨"><a href="#开启单线多拨" class="headerlink" title="开启单线多拨"></a>开启单线多拨</h2><p>废话少说，直接试试就知道行不行了，多拨的操作其实都是同一套，弄完了直接测速，突破百兆即为成功。本次测试在Openwrt上进行，需要有多拨插件 luci-app-syncdial 及负载均衡 luci-app-mwan3 两个软件包。<br>网络–多线多拨里，勾选“启用”，多拨类型选择单线多拨，虚拟WAN口数量改成改成你拥有的校园网账号数量，最低在线数量改为1，其他的保持默认即可，保存&amp;应用。<br><img alt="img1" class="post-img b-lazy" data-img="/images/blog4img1.png" data-index="0" data-src="/images/blog4img1.png"><br>进入网络–接口，可以看到多出了3个VWAN接口，但是还不能认证上网。分别点击接口右边的“修改”按钮，对每个VWAN接口进行修改，修改内容为：</p>
+<h2 id="改LAN口为WAN口"><a href="#改LAN口为WAN口" class="headerlink" title="改LAN口为WAN口"></a>改LAN口为WAN口</h2><p>新路由3只有一个WAN口，LAN口却有五个，要接入多条宽带的话必须要把部分LAN口改成WAN口。<br>在网络-&gt;交换机页面中进行设置。<br>简单来讲，所有的LAN口都在同一个VLAN ID里；每个WAN口则独立占用一个VLAN ID。<br>如果想把某一个接口从LAN口改成WAN口，则只需要单独创建一行VLAN ID，把这个口设置成“untagget”，并把这个口在其他VLAN ID中的相应位置改成“关”就行了。<br>CPU(eth0)则一律设置成“tagget”。<br>如图，这里我把LAN1改成了WAN口。<br><img alt="img1" class="post-img b-lazy" data-img="/images/blog4img1.png" data-index="0" data-src="/images/blog4img1.png"><br>其中需要记住每个WAN口的VLAN ID，比如说我这里原来的WAN口的VLAN ID是2，新改出来的WAN口的VLAN ID是3。<strong>在命令行中则分别用eth0.2、eth0.3表示它们。</strong></p>
+<h2 id="创建多个外网接口"><a href="#创建多个外网接口" class="headerlink" title="创建多个外网接口"></a>创建多个外网接口</h2><p>进入网络-&gt;接口页，把WAN和WAN6删除，然后点击添加新接口。<br>这里我建议把原本的WAN口命名为wan0，新改的WAN口命名为wan1、wan2……<br><strong>记住你此时输入的接口名是大写还是小写，因为创建成功后一律显示为大写，而实际上是有大小写之分的。</strong><br>接口协议选择“DHCP客户端”,接口选择eth0.2、eth0.3……这是原来的WAN口以及刚刚改出来的WAN口。<br><img alt="img2" class="post-img b-lazy" data-img="/images/blog4img2.png" data-index="1" data-src="/images/blog4img2.png"><br>点提交，然后再到防火墙设置里，把刚刚创建的接口都绑定到wan里，保存&amp;应用之后，就可以给这些接口插入宽带了。<br><img alt="img3" class="post-img b-lazy" data-img="/images/blog4img3.png" data-index="2" data-src="/images/blog4img3.png"><br>如果操作没有问题的话，应该能看到这些WAN口已经获取到IP地址了。<br>我弄的是双线双拨，所以就把LAN1改成了WAN口，并创建了两个接口。<br><img alt="img4" class="post-img b-lazy" data-img="/images/blog4img4.png" data-index="3" data-src="/images/blog4img4.png"></p>
+<h2 id="设置负载均衡"><a href="#设置负载均衡" class="headerlink" title="设置负载均衡"></a>设置负载均衡</h2><p>如果不设置的话，流量将只走一条宽带。<br>在网络-&gt;负载均衡里，建议把接口/成员/策略/规则里的自带内容删除后再进行下面的操作。</p>
 <ul>
-<li>将接口协议切换至“DHCP 客户端”</li>
-<li>在高级设置里，将网关跃点分别改成40、41、42……</li>
+<li>接口<br>添加所有外网接口，其中接口名和刚刚创建的<strong>接口名一致，大小写相等</strong>。<br>里面的配置可以仿照我的进行设置。<br><img alt="img5" class="post-img b-lazy" data-img="/images/blog4img5.png" data-index="4" data-src="/images/blog4img5.png"><br><img alt="img6" class="post-img b-lazy" data-img="/images/blog4img6.png" data-index="5" data-src="/images/blog4img6.png"><br><img alt="img7" class="post-img b-lazy" data-img="/images/blog4img7.png" data-index="6" data-src="/images/blog4img7.png"></li>
+<li>成员<br>有多少个外网接口则创建多少个成员，其中成员名不能和接口名一样，必须有区分，可以像我这样设置。<br><img alt="img8" class="post-img b-lazy" data-img="/images/blog4img8.png" data-index="7" data-src="/images/blog4img8.png"><br>其中<strong>这里的</strong>跃点数表示优先级，如果跃点数不一样则<strong>只启用跃点数小的接口</strong>，跃点数一样则同时启用；比重则决定已启用成员的流量配比。在这里我们全部设为1即可。</li>
+<li>策略<br>创建一条策略，名称随意。使用的成员为刚刚创建的成员。<br><img alt="img9" class="post-img b-lazy" data-img="/images/blog4img9.png" data-index="8" data-src="/images/blog4img9.png"></li>
+<li>规则<br>创建一条规则，名称随意。分配的策略选择“banlanced”，其他保持默认。<br><img alt="img10" class="post-img b-lazy" data-img="/images/blog4img10.png" data-index="9" data-src="/images/blog4img10.png"><br>设置完记得保存&amp;应用。</li>
 </ul>
-<p>保存&amp;应用<br><img alt="img2" class="post-img b-lazy" data-img="/images/blog4img2.png" data-index="1" data-src="/images/blog4img2.png"><br>VWAN口均已获取到了内网IPv4地址，此时已经可以登录校园网账号了。curl命令里可以加入-I参数来指定接口，如：</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -I macvlan1 -d “账号1的关键参数” http://172.31.99.50:802/include/auth_action.php </span><br><span class="line">curl -I macvlan2 -d “账号2的关键参数” http://172.31.99.50:802/include/auth_action.php</span><br><span class="line">curl -I macvlan3 -d “账号3的关键参数” http://172.31.99.50:802/include/auth_action.php</span><br><span class="line">以此类推……</span><br></pre></td></tr></tbody></table></figure>
-<p>这里macvlan1指的是你的VWAN的实际接口名，即在他们下方显示的内容。<br><img alt="img3" class="post-img b-lazy" data-img="/images/blog4img3.png" data-index="2" data-src="/images/blog4img3.png"><br>分别在TTDY终端里执行加了-I参数的三条curl命令。<br><img alt="img4" class="post-img b-lazy" data-img="/images/blog4img4.png" data-index="3" data-src="/images/blog4img4.png"><br>此时已经成功登陆上了3个账号，并且已经连上网络了。但是我们回到网络–接口页面查看，发现流量只走VWAN1，所以我们要配置下负载均衡。</p>
-<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><p>在一般的家庭宽带里，可能存在电信/联通宽带使用体验比移动好几倍的情况，所以有的人在负载均衡里给这些宽带设置的优先级、权重不一样。而在我们的校园网里，每个账号都是平等的，不存在哪个账号比较快，哪个账号延迟低的情况，所以我们这里只需要暴力地对流量平均分配即可。</p>
-<ul>
-<li>网络–负载均衡里，进入“接口”页，把除了vwam*之外的接口全都删了。<br><img alt="img5" class="post-img b-lazy" data-img="/images/blog4img5.png" data-index="4" data-src="/images/blog4img5.png"></li>
-<li>进入“成员”页，将vwan*_m1_w1之外的成员也都删了。其中这里的跃点数和一开始设置的跃点数含义不一样，这里的跃点数指的是优先级，数字越小优先级越高，只有当优先级高的接口成员断线后才会启用下一优先级的成员。当跃点数一样时，则看权重，权重高的成员分配到的流量就多。我们这里的跃点数和权重都设置成1即可。<br><img alt="img6" class="post-img b-lazy" data-img="/images/blog4img6.png" data-index="5" data-src="/images/blog4img6.png"></li>
-<li>“策略”页，按如图所示设置。<br><img alt="img7" class="post-img b-lazy" data-img="/images/blog4img7.png" data-index="6" data-src="/images/blog4img7.png"></li>
-<li>“规则”里，只留下一条协议为“all”，策略为“balanced”的就行了。<br><img alt="img8" class="post-img b-lazy" data-img="/images/blog4img8.png" data-index="7" data-src="/images/blog4img8.png"></li>
-</ul>
-<p>保存&amp;应用后，回到网络–接口页，可以看到流量已经开始平均分配了。这样设置的话就能同时调用多个账号进行上网，理论上速度能翻几倍。但是弊端也很明显，因为流量分配得很暴力，同时拥有多个外网IP，访问一些敏感的网站时会出现问题，比如说手机银行支付的时候。但毕竟这是一个简单的测试，要是成功叠加带宽的话，这些问题我们以后慢慢去修复。<br><img alt="img9" class="post-img b-lazy" data-img="/images/blog4img9.png" data-index="8" data-src="/images/blog4img9.png"><br>此时理论上单线多拨已经成功了，接下来只要测一下速度就可以知道有没有效果了。</p>
-<h2 id="坏消息"><a href="#坏消息" class="headerlink" title="坏消息"></a>坏消息</h2><p>很遗憾，测试结果如下：<br><img alt="img10" class="post-img b-lazy" data-img="/images/blog4img10.png" data-index="9" data-src="/images/blog4img10.png"><br><img alt="img11" class="post-img b-lazy" data-img="/images/blog4img11.png" data-index="10" data-src="/images/blog4img11.png"><br>算上一些传输过程中不可避免的损耗外，带宽上限死死的锁在了百兆。<br>按理说，每个账号存在限速，现在也登陆上了多个账号，而且每个账号都是并发连接，流量也平均分配了，这些软件端配置方面是没有任何问题的，那么问题就出现在了硬件端。</p>
-<p>路由器上连接WAN口的网线是六类网线，所以问题只能出在埋在墙里的线了，只要这条线是百兆的话，一切就解释得通了……</p>
-<p>之所以一切都这么顺利，没有碰上什么障碍，正是因为网络中心知道这里是百兆线，我们玩出花来也突破不了物理极限，所以干脆什么限制都不做了~</p>
-<p>单线多拨实现带宽叠加计划宣告失败！</p>
-<h2 id="好消息"><a href="#好消息" class="headerlink" title="好消息"></a>好消息</h2><p>虽然带宽上限没有叠加，但是也不能说完全没有用武之地。<br>假设处于用网高峰期，每个人只能分配到30兆的带宽。而你因为登陆了3个账号，所以你的带宽应该在90兆左右，接近物理上限。但实际上，内大校园网在几周前的某个周末大面积断网后就稳定很多了，在高峰期也能有70兆多，所以实际意义还是不大。</p>
-<p>另一方面，由于校园网没有对多拨进行检测和限制，所以我们可以进行多线多拨，将带宽进行真正意义上的物理叠加。不过由于近期事情比较多，宿舍条件也有限，就暂时搁置了。</p>
-<h2 id="多账号开机自动认证"><a href="#多账号开机自动认证" class="headerlink" title="多账号开机自动认证"></a>多账号开机自动认证</h2><p>不管是单线多拨还是多线多拨，总不能每天都手动进TTDY终端进行登录认证吧，所以得写一个自启脚本。<br>写起来也挺简单的，只要给<a href="https://lizijiandesu.github.io/20210330-1519">上一篇博文</a>的自启脚本加上指定接口即可。<br>用靠谱的文件管理器创建多个文件，把下面的内容复制进去，并把“关键参数”分别改为每个账号的关键参数。</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh /etc/rc.common</span><br><span class="line">START=99</span><br><span class="line"></span><br><span class="line">start(){</span><br><span class="line">ping -I macvlan1 -c 1 202.207.0.6</span><br><span class="line">while [ $? != 0 ]</span><br><span class="line">do</span><br><span class="line">	sleep 5</span><br><span class="line">	ping -I macvlan1 -c 1 202.207.0.6</span><br><span class="line">done</span><br><span class="line">curl --interface macvlan1 -d "关键参数" http://172.31.99.50:802/include/auth_action.php</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>可以看到仅仅是对上篇博文的脚本做了三处改动，其中ping后面的-I和curl后面的–interface都起到指定接口的作用，把它们分别改成你创建的VWAN对应的实际接口名，比如我这里的macvlan1。<br>接下来进入TTDY终端，执行：</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /etc/init.d</span><br><span class="line">./autologin disable</span><br></pre></td></tr></tbody></table></figure>
-<p>其中第二条命令的作用是取消掉上篇博文里创建的脚本自启，因为这个脚本没有指定接口。</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi autologin1</span><br></pre></td></tr></tbody></table></figure>
-<p>按小写字母i进入插入模式，再把刚刚编辑的脚本复制，Ctrl+Shift+v粘贴进去。<br>Esc键返回命令模式，输入<code>:wq</code>并回车，保存退出。<br>同理，执行<code>vi autologin2</code>、<code>vi autologin3</code>……分别把第二、第三个账号的自启脚本复制进去，保存退出。<br>接着执行以下命令，给刚刚创建的每一个脚本都赋予执行权限：</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x autologin*</span><br></pre></td></tr></tbody></table></figure>
-<p>最后分别执行下列命令，给这些脚本设置开机启动：</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">./autologin1 enable</span><br><span class="line">./autologin2 enable</span><br><span class="line">./autologin3 enable</span><br><span class="line">以此类推……</span><br></pre></td></tr></tbody></table></figure>
-<p>前往系统–启动项页面查看是否存在<code>autologin1</code>、<code>autologin2</code>……并确认其已启用。<br>重启查看效果。</p>
-<h2 id="未完待续"><a href="#未完待续" class="headerlink" title="未完待续"></a>未完待续</h2><p>总有一天我会搞定它的。</p>
+<h2 id="多拨状态下的自动认证"><a href="#多拨状态下的自动认证" class="headerlink" title="多拨状态下的自动认证"></a>多拨状态下的自动认证</h2><p>只需要对上一篇博文的代码进行略微修改就可以了。<br>另外，如果你在上一篇博文里已经创建了autologin，则需要删除，或者更改文件名。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /etc/init.d</span><br><span class="line">rm autologin</span><br></pre></td></tr></tbody></table></figure>
+<p>复制以下代码到专业的文本编辑器里，把15、16行的接口和账号参数改成自己的。如果需要三拨或者更多拨，则按照格式修改最后几行。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh /etc/rc.common</span><br><span class="line">START=99</span><br><span class="line"></span><br><span class="line">login(){</span><br><span class="line">	ping -I $1 -c 1 202.207.0.6</span><br><span class="line">	while [ $? != 0 ]</span><br><span class="line">	do</span><br><span class="line">		sleep 5</span><br><span class="line">		ping -I $1 -c 1 202.207.0.6</span><br><span class="line">	done</span><br><span class="line">	curl --interface $1 -d "$2" http://172.31.99.50:802/include/auth_action.php</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">start(){</span><br><span class="line">VLAN_ID_1="eth0.2"   user_1="账号1的关键参数"</span><br><span class="line">VLAN_ID_2="eth0.3"   user_2="账号2的关键参数"</span><br><span class="line"></span><br><span class="line">login $VLAN_ID_1 $user_1</span><br><span class="line">login $VLAN_ID_2 $user_2</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi autologin</span><br></pre></td></tr></tbody></table></figure>
+<p>修改完了之后复制到autologin，方法就不多赘述了。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod +x autologin</span><br><span class="line">./autologin enable</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="修复多拨产生的问题"><a href="#修复多拨产生的问题" class="headerlink" title="修复多拨产生的问题"></a>修复多拨产生的问题</h2><p>多拨之后虽然能够实现暴力的网速叠加，但是也会出现一些问题，比如说导致某些网页加载不全、微信图片发送不出去、腾讯视频无法观看等，几乎无法日用。<br>困扰了很久之后终于找到了解决方案，只需要在网络-&gt;防火墙-&gt;自定义规则里添加一条规则就行了。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat -I POSTROUTING -j MASQUERADE</span><br></pre></td></tr></tbody></table></figure>
+<p><img alt="img11" class="post-img b-lazy" data-img="/images/blog4img11.png" data-index="10" data-src="/images/blog4img11.png"><br>添加完记得重启防火墙。<br>虽然问题解决了，但它是怎么产生的，这条规则又实现了什么，我是完全不懂（摊手）。所以如果有朋友知道的话，可以在评论区告诉我。</p>
+<h2 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h2><p>关于多拨的所有设置已经做完了，此时重启路由器，并到状态-&gt;负载均衡页面确认所有外网接口是否都在线。<br>前往 <a target="_blank" rel="noopener" href="https://www.speedtest.net/">https://www.speedtest.net/</a> 测试一下网速。<br><img alt="img12" class="post-img b-lazy" data-img="/images/blog4img12.png" data-index="11" data-src="/images/blog4img12.png"><br><img alt="img13" class="post-img b-lazy" data-img="/images/blog4img13.png" data-index="12" data-src="/images/blog4img13.png"></p>
+<h2 id="部分参考资料"><a href="#部分参考资料" class="headerlink" title="部分参考资料"></a>部分参考资料</h2><p><a target="_blank" rel="noopener" href="https://www.right.com.cn/forum/thread-2659746-1-1.html">openwrt负载均衡最详细设置—小白基础篇</a><br><a target="_blank" rel="noopener" href="https://www.right.com.cn/forum/thread-2670532-1-1.html">openwrt负载均衡最详细设置—小白进阶篇</a><br><a target="_blank" rel="noopener" href="https://www.right.com.cn/forum/thread-506510-1-1.html">[N1盒子] N1刷入LEAN OPENWRT做旁路网关，导致访问国内网站卡顿</a></p>
 
                 </article>
                 <ul class="tags-postTags">
@@ -197,6 +187,10 @@
 
     
     <nav id="gobottom" class="pagination">
+        
+        <a class="prev-post" title="打造内大最强路由器（四）：细节优化：IPv6穿透、DNS设置、断网重连" href="/20210401-1515">
+            ← 打造内大最强路由器（四）：细节优化：IPv6穿透、DNS设置、断网重连
+        </a>
         
         <span class="prev-next-post">·</span>
         
@@ -227,7 +221,7 @@
         </a>
     </div>
     <div class="toc-main">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%A4%9A%E6%8B%A8"><span class="toc-text">什么是多拨</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%A0%A1%E5%9B%AD%E7%BD%91%E5%8D%95%E7%BA%BF%E5%A4%9A%E6%8B%A8%E7%9A%84%E5%8F%AF%E8%83%BD%E6%80%A7"><span class="toc-text">实现校园网单线多拨的可能性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%90%AF%E5%8D%95%E7%BA%BF%E5%A4%9A%E6%8B%A8"><span class="toc-text">开启单线多拨</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-text">负载均衡</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9D%8F%E6%B6%88%E6%81%AF"><span class="toc-text">坏消息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A5%BD%E6%B6%88%E6%81%AF"><span class="toc-text">好消息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E8%B4%A6%E5%8F%B7%E5%BC%80%E6%9C%BA%E8%87%AA%E5%8A%A8%E8%AE%A4%E8%AF%81"><span class="toc-text">多账号开机自动认证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AA%E5%AE%8C%E5%BE%85%E7%BB%AD"><span class="toc-text">未完待续</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%A4%9A%E6%8B%A8"><span class="toc-text">什么是多拨</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E7%BA%BF%E5%A4%9A%E6%8B%A8%E7%9A%84%E6%8E%A2%E7%B4%A2%E4%B8%8E%E7%BB%93%E6%9E%9C"><span class="toc-text">单线多拨的探索与结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%94%B9LAN%E5%8F%A3%E4%B8%BAWAN%E5%8F%A3"><span class="toc-text">改LAN口为WAN口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%A4%9A%E4%B8%AA%E5%A4%96%E7%BD%91%E6%8E%A5%E5%8F%A3"><span class="toc-text">创建多个外网接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-text">设置负载均衡</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E6%8B%A8%E7%8A%B6%E6%80%81%E4%B8%8B%E7%9A%84%E8%87%AA%E5%8A%A8%E8%AE%A4%E8%AF%81"><span class="toc-text">多拨状态下的自动认证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%A4%9A%E6%8B%A8%E4%BA%A7%E7%94%9F%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-text">修复多拨产生的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E5%90%AF"><span class="toc-text">重启</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%83%A8%E5%88%86%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">部分参考资料</span></a></li></ol>
     </div>
 </div>
 
@@ -329,20 +323,24 @@
       
       
       <li>
-        <a href="/20210331-1029">打造内大最强路由器（三）：单线多拨实现带宽叠加（伪）</a>
+        <a href="/20210427-2015">打造内大最强路由器（五）：番外：白嫖校园网、路由器不断电</a>
       </li>
       
       
       
       <li>
-        <a href="/20210330-1519">打造内大最强路由器（二）：深澜WEB自动认证</a>
+        <a href="/20210401-1515">打造内大最强路由器（四）：细节优化：IPv6穿透、DNS设置、断网重连</a>
       </li>
       
       
       
       <li>
-        <a href="/20210329-0909">打造内大最强路由器（一）：新路由3、Breed、固件与基本设置</a>
+        <a href="/20210331-1029">打造内大最强路由器（三）：多线多拨实现带宽叠加</a>
       </li>
+      
+      
+      
+      
       
       
       
@@ -397,7 +395,7 @@
 			<a href="/" title="离子键's blog">离子键's blog © 2021</a>
 			
 				
-			        <span hidden="true" id="/20210331-1029" class="leancloud-visitors" data-flag-title="打造内大最强路由器（三）：单线多拨实现带宽叠加（伪）">
+			        <span hidden="true" id="/20210331-1029" class="leancloud-visitors" data-flag-title="打造内大最强路由器（三）：多线多拨实现带宽叠加">
 			            <span>阅读量 </span>
 			            <span class="leancloud-visitors-count">0</span>
 			        </span>
