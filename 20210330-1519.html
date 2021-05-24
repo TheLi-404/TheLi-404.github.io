@@ -152,7 +152,7 @@
 <p>改完关键参数后，全选、复制留作备用。</p>
 <p>切换到英文输入，在<code>TTYD 终端</code>里，执行命令：</p>
 <figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /etc/init.d     # 进入/etc/init.d</span><br><span class="line">vi autologin       # 用vi编辑器创建并编辑文件autologin</span><br></pre></td></tr></tbody></table></figure>
-<p>要注意的是，此时是<strong>命令模式</strong>，需要按<code>i</code>键进入<strong>插入模式</strong>才可以输入。<br>然后把刚刚复制的内容粘贴进去。（再次提醒下，Linux终端里的粘贴快捷键为<code>Ctrl</code>+<code>Shif</code>t+<code>v</code>）<br>按<code>Esc</code>返回命令模式，输入<code>:wq</code>并回车，保存退出。<br><img alt="img7" class="post-img b-lazy" data-img="/images/blog3img7.png" data-index="6" data-src="/images/blog3img7.png"><br>接下来给刚刚编辑的文件加上执行权限，终端执行：</p>
+<p>要注意的是，此时是<strong>命令模式</strong>，需要按<code>i</code>键进入<strong>插入模式</strong>才可以输入。<br>然后把刚刚复制的内容粘贴进去。（再次提醒下，Linux终端里的粘贴快捷键为<code>Ctrl</code>+<code>Shift</code>+<code>v</code>）<br>按<code>Esc</code>返回命令模式，输入<code>:wq</code>并回车，保存退出。<br><img alt="img7" class="post-img b-lazy" data-img="/images/blog3img7.png" data-index="6" data-src="/images/blog3img7.png"><br>接下来给刚刚编辑的文件加上执行权限，终端执行：</p>
 <figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x autologin</span><br></pre></td></tr></tbody></table></figure>
 <p>然后设置开机启动项，执行：</p>
 <figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./autologin enable</span><br></pre></td></tr></tbody></table></figure>
